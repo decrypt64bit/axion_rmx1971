@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <remote name="decrypt64bit" fetch="https://github.com/decrypt64bit/" />
+  <remote name="kaderbava-gitlab" fetch="https://gitlab.com/kaderbava/" />
+
+  <project path="device/realme/RMX1971" name="device_realme_RMX1971" remote="decrypt64bit" revision="axion-16" />
+  <project path="kernel/realme/sdm710" name="android_kernel_mystralis" remote="decrypt64bit" revision="mystralis-clean" />
+  <project path="vendor/realme/RMX1971" name="vendor_realme_RMX1971" remote="kaderbava-gitlab" revision="16" />
+
+  <remove-project path="packages/apps/FaceUnlock" />
+  <project path="packages/apps/FaceUnlock" name="android_packages_apps_AxFaceUnlock" remote="decrypt64bit" revision="axion-16" />
+
+  <remove-project path="packages/apps/Settings" />
+  <project path="packages/apps/Settings" name="android_packages_apps_Settings" remote="decrypt64bit" revision="lineage-23.2" />
+
+  <remove-project path="frameworks/base" />
+  <project path="frameworks/base" name="android_frameworks_base" remote="decrypt64bit" revision="axion-16-fix" />
+</manifest>
