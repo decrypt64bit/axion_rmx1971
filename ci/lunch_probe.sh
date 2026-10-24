@@ -30,7 +30,7 @@ timeout --signal=KILL 300 get_build_var TARGET_DEVICE
 timeout --signal=KILL 300 get_build_var PRODUCT_SHIPPING_API_LEVEL
 timeout --signal=KILL 900 get_build_var PRODUCT_PACKAGES > /tmp/packages.txt
 
-for pkg in AxionParts AxionFx AxionIntelligence; do
+for pkg in AxionParts AxThemePicker AxThemeStore EdgeLauncher AxDiagnostics; do
     if grep -qw "$pkg" /tmp/packages.txt; then
         echo "OK: $pkg in PRODUCT_PACKAGES"
     else
