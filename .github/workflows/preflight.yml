@@ -69,6 +69,9 @@ jobs:
             prebuilts/go/linux-x86 \
             external/go-cmp \
             external/golang-protobuf \
+            external/starlark-go \
+            external/pogreb \
+            prebuilts/bazel/common \
             development
           python3 device/realme/RMX1971/ci/patch_envsetup.py build/make/envsetup.sh
           df -h /
