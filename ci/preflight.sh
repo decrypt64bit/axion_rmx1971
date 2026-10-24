@@ -70,9 +70,10 @@ grep -q "class Hbm : BasePreferenceFragment(R.xml.hbm_settings)" "$SETTINGS/src/
 test -f "$SETTINGS/src/com/android/settings/applications/appinfo/AppsLocalePreferenceController.java" || fail "AppsLocalePreferenceController missing"
 ok "Settings files"
 
-python3 - "$SETTINGS" <<'PY'
-import re, sys, pathlib, xml.etree.ElementTree as ET
-root = pathlib.Path(sys.argv[1])
+python3 - "$SETTINGS" "$FB" <<'PY'
+import os, re, sys, pathlib, xml.etree.ElementTree as ET
+settings = pathlib.Path(sys.argv[1])
+settingslib = pathlib.Path(sys.argv[2]) / 'packages' / 'SettingsLib'
 xmls = [
     'res/xml/hbm_settings.xml',
     'res/xml/display_settings.xml',
@@ -81,20 +82,31 @@ xmls = [
     'res/xml/language_and_input.xml',
 ]
 names = set()
-for p in (root / 'res').glob('values*/**/*.xml'):
-    try:
-        names.update(a.get('name') for a in ET.parse(p).getroot().iter() if a.get('name'))
-    except ET.ParseError:
-        pass
+roots = [settings / 'res', settings / 'res-product', settingslib]
+for root in roots:
+    if not root.is_dir():
+        continue
+    for dirpath, dirnames, filenames in os.walk(root):
+        if os.path.basename(dirpath) != 'values' and not os.path.basename(dirpath).startswith('values-'):
+            continue
+        for fn in filenames:
+            if not fn.endswith('.xml'):
+                continue
+            try:
+                tree = ET.parse(os.path.join(dirpath, fn))
+            except ET.ParseError as e:
+                print('WARN: cannot parse %s: %s' % (os.path.join(dirpath, fn), e))
+                continue
+            names.update(a.get('name') for a in tree.getroot().iter() if a.get('name'))
 missing = []
 for rel in xmls:
-    text = (root / rel).read_text()
+    text = (settings / rel).read_text()
     for ref in set(re.findall(r'@string/([A-Za-z0-9_]+)', text)):
         if ref not in names:
             missing.append('%s: %s' % (rel, ref))
 if missing:
     sys.exit('unresolved string refs: %s' % missing)
-print('all string refs in %d xml files resolve' % len(xmls))
+print('all string refs in %d xml files resolve (app + res-product + SettingsLib)' % len(xmls))
 PY
 ok "string resources"
 
