@@ -139,10 +139,19 @@ PY
 ok "device copy files"
 
 echo "=== 6. sepolicy types ==="
-for t in sysfs_battery_supply sysfs_devices_system_cpu sysfs_gpu; do
-    grep -rq "type $t," "$WS/system/sepolicy" || fail "type $t not defined in system/sepolicy"
+test -f "$WS/device/qcom/sepolicy_vndr/SEPolicy.mk" || fail "qcom sepolicy pickup (hardware/qcom-caf/common linkfile) missing"
+
+type_defined() {
+    local t="$1"
+    for d in "$WS/system/sepolicy" "$WS/device/qcom/sepolicy_vndr" "$WS/device/lineage/sepolicy" "$DEV/sepolicy"; do
+        [ -d "$d" ] || continue
+        grep -rq "type $t," "$d" && return 0
+    done
+    return 1
+}
+for t in sysfs_battery_supply sysfs_devices_system_cpu sysfs_gpu sysfs_oppo_display; do
+    type_defined "$t" || fail "type $t is not defined in system, qcom, lineage or device policy"
 done
-grep -rq "type sysfs_oppo_display," "$DEV/sepolicy" || fail "sysfs_oppo_display not defined"
 grep -rq "type hal_health_default, domain" "$WS/system/sepolicy" || fail "hal_health_default domain not defined"
 ok "sepolicy types"
 

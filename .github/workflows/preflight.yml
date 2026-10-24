@@ -57,6 +57,8 @@ jobs:
             frameworks/base \
             vendor/realme/RMX1971 \
             system/sepolicy \
+            device/qcom/sepolicy_vndr/legacy-um \
+            device/lineage/sepolicy \
             device/axion/common \
             vendor/lineage \
             hardware/qcom-caf/common \
