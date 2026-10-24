@@ -74,6 +74,7 @@ jobs:
             external/starlark-go \
             external/pogreb \
             prebuilts/bazel/common \
+            toolchain/pgo-profiles \
             development
           python3 device/realme/RMX1971/ci/patch_envsetup.py build/make/envsetup.sh
           df -h /
