@@ -60,6 +60,7 @@ jobs:
             device/qcom/sepolicy_vndr/legacy-um \
             device/lineage/sepolicy \
             device/axion/common \
+            vendor/official_devices \
             vendor/lineage \
             hardware/qcom-caf/common \
             build/make \
