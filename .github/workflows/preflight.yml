@@ -68,6 +68,7 @@ jobs:
             prebuilts/build-tools \
             prebuilts/go/linux-x86 \
             development
+          python3 device/realme/RMX1971/ci/patch_envsetup.py build/make/envsetup.sh
           df -h /
 
       - name: Preflight checks

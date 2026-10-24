@@ -254,7 +254,7 @@ done
 ok "kotlinc (BasePreferenceFragment, Hbm)"
 
 echo "=== 10. remote scripts and kernel ==="
-for f in run.sh sync.sh build.sh local_manifest.xml; do
+for f in run.sh sync.sh build.sh local_manifest.xml patch_envsetup.py; do
     curl -fsSL "https://raw.githubusercontent.com/decrypt64bit/device_realme_RMX1971/axion-16/ci/$f" -o "/tmp/$f" \
         || fail "cannot fetch $f from the device fork"
     cmp -s "/tmp/$f" "$META/ci/$f" || fail "$f in the release repo differs from the device fork"

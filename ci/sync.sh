@@ -60,6 +60,9 @@ cat .repo/local_manifests/rmx1971.xml
 echo "=== REPO SYNC ==="
 repo sync -c -j8 --force-sync --no-clone-bundle --no-tags
 
+echo "=== PATCH ENVSETUP ==="
+python3 device/realme/RMX1971/ci/patch_envsetup.py build/make/envsetup.sh
+
 echo "=== SYNC DONE $(date -u) ==="
 df -h . | tail -1
 du -sh .repo 2>/dev/null || true
