@@ -169,17 +169,74 @@ ANDROID_JAR="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/platforms" -nam
 [ -n "$ANDROID_JAR" ] || fail "android.jar not found"
 curl -fsSL https://dl.google.com/android/maven2/androidx/preference/preference/1.2.1/preference-1.2.1.aar -o /tmp/pref.aar || fail "androidx.preference download failed"
 rm -rf /tmp/pref && mkdir -p /tmp/pref && unzip -q /tmp/pref.aar classes.jar -d /tmp/pref
+
+# The SDK android.jar has no hidden APIs; the platform build compiles against
+# framework.jar. Stub only what our files touch so javac still checks them.
+STUBS=/tmp/stubs-src
+rm -rf "$STUBS" /tmp/stubs && mkdir -p "$STUBS/android/os" "$STUBS/android/app/settings" \
+    "$STUBS/com/android/settings" "$STUBS/androidx/fragment/app"
+cat > "$STUBS/android/os/SystemProperties.java" <<'JAVA'
+package android.os;
+public class SystemProperties {
+    public static String get(String key) { return null; }
+    public static String get(String key, String def) { return def; }
+    public static boolean getBoolean(String key, boolean def) { return def; }
+    public static int getInt(String key, int def) { return def; }
+    public static long getLong(String key, long def) { return def; }
+    public static void set(String key, String val) { }
+}
+JAVA
+cat > "$STUBS/android/app/settings/SettingsEnums.java" <<'JAVA'
+package android.app.settings;
+public final class SettingsEnums {
+    public static final int SECURITY = 1;
+}
+JAVA
+cat > "$STUBS/com/android/settings/R.java" <<'JAVA'
+package com.android.settings;
+public final class R {
+    public static final class string {
+        public static final int power_off_verify_title = 1;
+        public static final int power_off_verify_summary = 2;
+    }
+    public static final class xml {
+        public static final int hbm_settings = 3;
+    }
+}
+JAVA
+cat > "$STUBS/com/android/settings/SettingsPreferenceFragment.java" <<'JAVA'
+package com.android.settings;
+import android.content.Context;
+import android.os.Bundle;
+import androidx.preference.PreferenceManager;
+import androidx.preference.PreferenceScreen;
+public class SettingsPreferenceFragment {
+    public void onCreate(Bundle savedInstanceState) { }
+    public Context requireContext() { return null; }
+    public PreferenceManager getPreferenceManager() { return null; }
+    public void setPreferenceScreen(PreferenceScreen screen) { }
+    public int getMetricsCategory() { return 0; }
+}
+JAVA
+cat > "$STUBS/androidx/fragment/app/Fragment.java" <<'JAVA'
+package androidx.fragment.app;
+public class Fragment { }
+JAVA
+javac -proc:none -nowarn -cp "$ANDROID_JAR:/tmp/pref/classes.jar" -d /tmp/stubs \
+    $(find "$STUBS" -name '*.java') || fail "stub compilation failed"
+
 mkdir -p /tmp/javac-out
-javac -proc:none -nowarn -cp "$ANDROID_JAR:/tmp/pref/classes.jar" -d /tmp/javac-out \
+javac -proc:none -nowarn -cp "$ANDROID_JAR:/tmp/pref/classes.jar:/tmp/stubs" -d /tmp/javac-out \
     "$SETTINGS/src/com/android/settings/preferences/SecureSettingSwitchPreference.java" \
     "$SETTINGS/src/com/android/settings/preferences/SecureSettingSeekBarPreference.java" \
     "$SETTINGS/src/com/android/settings/preferences/SecureSettingListPreference.java" \
     "$SETTINGS/src/com/android/settings/preferences/SystemSettingSwitchPreference.java" \
     "$SETTINGS/src/com/android/settings/preferences/SystemPropertySwitchPreference.java" \
+    "$SETTINGS/src/com/android/settings/security/PowerOffVerify.java" \
     || fail "javac failed for preference classes"
-ok "javac"
+ok "javac (6 classes)"
 
-echo "=== 9. kotlinc BasePreferenceFragment ==="
+echo "=== 9. kotlinc fragments ==="
 curl -fsSL -o /tmp/kotlin.zip https://github.com/JetBrains/kotlin/releases/download/v2.0.21/kotlin-compiler-2.0.21.zip || fail "kotlinc download failed"
 rm -rf /tmp/kotlinc && unzip -q /tmp/kotlin.zip -d /tmp/kotlinc
 ANN=""
@@ -189,10 +246,12 @@ for u in \
     if curl -fsSL "$u" -o /tmp/annotation.jar; then ANN=/tmp/annotation.jar; break; fi
 done
 [ -n "$ANN" ] || fail "androidx annotation jar not found"
-/tmp/kotlinc/kotlinc/bin/kotlinc -nowarn -classpath "$ANDROID_JAR:/tmp/pref/classes.jar:$ANN" \
-    -d /tmp/kotlin-out "$SETTINGS/src/com/android/settings/preferences/BasePreferenceFragment.kt" \
-    || fail "kotlinc failed for BasePreferenceFragment.kt"
-ok "kotlinc"
+/tmp/kotlinc/kotlinc/bin/kotlinc -nowarn -classpath "$ANDROID_JAR:/tmp/pref/classes.jar:$ANN:/tmp/stubs" \
+    -d /tmp/kotlin-out \
+    "$SETTINGS/src/com/android/settings/preferences/BasePreferenceFragment.kt" \
+    "$SETTINGS/src/com/android/settings/display/Hbm.kt" \
+    || fail "kotlinc failed for fragment classes"
+ok "kotlinc (BasePreferenceFragment, Hbm)"
 
 echo "=== 10. remote scripts and kernel ==="
 for f in run.sh sync.sh build.sh local_manifest.xml; do
