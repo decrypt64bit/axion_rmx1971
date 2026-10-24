@@ -42,6 +42,14 @@ curl -fsSL https://raw.githubusercontent.com/decrypt64bit/device_realme_RMX1971/
 
 That script runs `ci/sync.sh` (repo init against the Axion manifest, install the local manifest, sync, verify the forked commits and device configuration) and then `ci/build.sh` (lunch `lineage_RMX1971`, build Settings as a precheck, then `ax -br`).
 
+## Verification
+
+A GitHub Actions preflight (`.github/workflows/preflight.yml`) runs before any long Crave build. It syncs the Axion manifest plus every forked project, applies the same fork and device checks as the Crave pipeline, compiles the touched XML resources with aapt2 and the new Settings classes with javac/kotlinc, then runs `lunch` and asserts that `AxionParts`, `AxThemePicker`, `AxThemeStore`, `EdgeLauncher` and `AxDiagnostics` are in `PRODUCT_PACKAGES` and that `device/axion/common` is in the Soong namespaces.
+
+It also applies `ci/patch_envsetup.py`: Axion's `build/make/envsetup.sh` calls `generate_host_overrides` while being sourced, and its `cat /dev/urandom | tr | fold | head` pipeline can block indefinitely. The patch replaces that line with `openssl rand -hex 2`.
+
+What the preflight cannot confirm: the full Soong/Ninja compile, image packaging and signing — those only happen in the real build.
+
 ## Releases
 
 A release is published here once a build completes: the ROM zip, boot and dtbo images where applicable, and a SHA-256 manifest. Builds that are queued or still running are not published.
