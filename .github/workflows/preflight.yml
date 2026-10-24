@@ -1,0 +1,93 @@
+name: preflight
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'ci/**'
+      - '.github/workflows/preflight.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Checkout pipeline repo
+        uses: actions/checkout@v4
+        with:
+          path: meta
+
+      - name: Runner resources
+        run: |
+          df -h /
+          nproc
+          free -g
+          echo "ANDROID_HOME=${ANDROID_HOME:-/usr/local/lib/android/sdk}" >> "$GITHUB_ENV"
+
+      - name: Install repo
+        run: |
+          mkdir -p "$HOME/bin"
+          curl -fsSL https://storage.googleapis.com/git-repo-downloads/repo -o "$HOME/bin/repo"
+          chmod +x "$HOME/bin/repo"
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+
+      - name: Repo init with local manifest
+        run: |
+          git config --global user.name "Axion Preflight"
+          git config --global user.email "preflight@axion.local"
+          mkdir workspace
+          cd workspace
+          repo init -u https://github.com/AxionAOSP/android.git -b lineage-23.2 \
+            --git-lfs --depth=1 --no-clone-bundle
+          mkdir -p .repo/local_manifests
+          cp ../meta/ci/local_manifest.xml .repo/local_manifests/rmx1971.xml
+          repo manifest -o "$RUNNER_TEMP/merged.xml"
+          grep -c '<project ' "$RUNNER_TEMP/merged.xml"
+
+      - name: Sync fork and build projects
+        run: |
+          cd workspace
+          repo sync -c -j4 --no-clone-bundle --no-tags --force-sync \
+            device/realme/RMX1971 \
+            packages/apps/Settings \
+            packages/apps/FaceUnlock \
+            frameworks/base \
+            vendor/realme/RMX1971 \
+            system/sepolicy \
+            device/axion/common \
+            vendor/lineage \
+            hardware/qcom-caf/common \
+            build/make \
+            build/soong \
+            build/blueprint \
+            prebuilts/build-tools \
+            prebuilts/go/linux-x86
+          df -h /
+
+      - name: Preflight checks
+        run: bash meta/ci/preflight.sh "$PWD/workspace" "$RUNNER_TEMP/merged.xml" "$PWD/meta"
+
+      - name: Product config (lunch)
+        run: |
+          cd workspace
+          set +u
+          source build/envsetup.sh
+          axion RMX1971 userdebug va
+          echo "TARGET_PRODUCT=$(get_build_var TARGET_PRODUCT)"
+          echo "TARGET_DEVICE=$(get_build_var TARGET_DEVICE)"
+          echo "PRODUCT_SHIPPING_API_LEVEL=$(get_build_var PRODUCT_SHIPPING_API_LEVEL)"
+          get_build_var PRODUCT_PACKAGES > /tmp/packages.txt
+          for pkg in AxionParts AxionFx AxionIntelligence; do
+            if grep -qw "$pkg" /tmp/packages.txt; then
+              echo "OK: $pkg in PRODUCT_PACKAGES"
+            else
+              echo "FAIL: $pkg missing from PRODUCT_PACKAGES"
+              exit 1
+            fi
+          done
+          get_build_var PRODUCT_SOONG_NAMESPACES | tr ' ' '\n' | grep -qx "device/axion/common" \
+            || { echo "FAIL: device/axion/common namespace missing"; exit 1; }
+          echo "OK: Axion common applied to the product"
