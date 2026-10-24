@@ -69,6 +69,7 @@ ls -l device/realme/RMX1971/lineage_RMX1971.mk
 ls -l kernel/realme/sdm710/arch/arm64/configs/sdm670-perf_defconfig
 ls -l vendor/realme/RMX1971/RMX1971-vendor.mk
 ls -l packages/apps/FaceUnlock/common.mk
+ls -l development/tools/make_key
 
 echo "=== FORK CHECKS ==="
 test -f packages/apps/Settings/src/com/android/settings/preferences/BasePreferenceFragment.kt

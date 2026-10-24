@@ -259,6 +259,7 @@ for f in run.sh sync.sh build.sh local_manifest.xml; do
         || fail "cannot fetch $f from the device fork"
     cmp -s "/tmp/$f" "$META/ci/$f" || fail "$f in the release repo differs from the device fork"
 done
+test -f "$WS/development/tools/make_key" || fail "development/tools/make_key missing (gk cannot sign)"
 git ls-remote https://github.com/decrypt64bit/android_kernel_mystralis mystralis-clean | grep -q . \
     || fail "kernel branch mystralis-clean not found"
 curl -fsSL https://raw.githubusercontent.com/decrypt64bit/android_kernel_mystralis/mystralis-clean/arch/arm64/configs/sdm670-perf_defconfig -o /dev/null \

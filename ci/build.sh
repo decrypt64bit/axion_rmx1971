@@ -12,12 +12,20 @@ export LC_ALL=C
 export TZ=UTC
 
 echo "=== ENVSETUP ==="
+# Axion's envsetup runs setup_keys() at source time; on a clean tree that calls
+# gk -s before lunch, and gk has no default for ANDROID_KEY_PATH. Provide it.
+export ANDROID_KEY_PATH="$PWD/vendor/lineage-priv/keys"
+mkdir -p "$ANDROID_KEY_PATH"
 set +u
 source build/envsetup.sh
 set -u
 
 echo "=== KEYS ==="
-gk -s
+if [ ! -f "$ANDROID_KEY_PATH/releasekey.pk8" ]; then
+    gk -s
+else
+    echo "signing keys already present"
+fi
 
 echo "=== LUNCH ==="
 axion RMX1971 userdebug va
