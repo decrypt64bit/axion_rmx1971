@@ -67,6 +67,8 @@ jobs:
             build/blueprint \
             prebuilts/build-tools \
             prebuilts/go/linux-x86 \
+            external/go-cmp \
+            external/golang-protobuf \
             development
           python3 device/realme/RMX1971/ci/patch_envsetup.py build/make/envsetup.sh
           df -h /
