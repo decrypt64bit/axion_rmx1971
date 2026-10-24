@@ -78,22 +78,5 @@ jobs:
           cd workspace
           export ANDROID_KEY_PATH="$PWD/vendor/lineage-priv/keys"
           mkdir -p "$ANDROID_KEY_PATH"
-          set +u
-          source build/envsetup.sh
-          gk -s
-          axion RMX1971 userdebug va
-          echo "TARGET_PRODUCT=$(get_build_var TARGET_PRODUCT)"
-          echo "TARGET_DEVICE=$(get_build_var TARGET_DEVICE)"
-          echo "PRODUCT_SHIPPING_API_LEVEL=$(get_build_var PRODUCT_SHIPPING_API_LEVEL)"
-          get_build_var PRODUCT_PACKAGES > /tmp/packages.txt
-          for pkg in AxionParts AxionFx AxionIntelligence; do
-            if grep -qw "$pkg" /tmp/packages.txt; then
-              echo "OK: $pkg in PRODUCT_PACKAGES"
-            else
-              echo "FAIL: $pkg missing from PRODUCT_PACKAGES"
-              exit 1
-            fi
-          done
-          get_build_var PRODUCT_SOONG_NAMESPACES | tr ' ' '\n' | grep -qx "device/axion/common" \
-            || { echo "FAIL: device/axion/common namespace missing"; exit 1; }
-          echo "OK: Axion common applied to the product"
+          export LC_ALL=C
+          timeout --signal=KILL 3300 bash ../meta/ci/lunch_probe.sh </dev/null
