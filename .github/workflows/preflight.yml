@@ -65,6 +65,7 @@ jobs:
             build/make \
             build/soong \
             build/blueprint \
+            build/release \
             prebuilts/build-tools \
             prebuilts/go/linux-x86 \
             external/go-cmp \
