@@ -49,13 +49,19 @@ echo "=== REPO VERSION ==="
 repo --version 2>&1 | head -3
 
 echo "=== REPO INIT ==="
-repo init -u https://github.com/AxionAOSP/android.git -b lineage-23.2 $LFS_FLAG --depth=1 --no-clone-bundle
+repo init -u https://github.com/AxionAOSP/android.git -b lineage-23.2 $LFS_FLAG --depth=1 --no-repo-verify --no-clone-bundle
 
 echo "=== LOCAL MANIFEST ==="
+rm -rf .repo/local_manifests
 mkdir -p .repo/local_manifests
 ls -la .repo/local_manifests || true
 curl -fsSL "$BASE/local_manifest.xml" -o .repo/local_manifests/rmx1971.xml
 cat .repo/local_manifests/rmx1971.xml
+
+if [ -f /opt/crave/resync.sh ]; then
+    echo "=== CRAVE RESYNC SCRIPT (head) ==="
+    head -40 /opt/crave/resync.sh || true
+fi
 
 echo "=== REPO SYNC ==="
 repo sync -c -j8 --force-sync --no-clone-bundle --no-tags
