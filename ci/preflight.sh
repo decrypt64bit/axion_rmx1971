@@ -253,7 +253,19 @@ done
     || fail "kotlinc failed for fragment classes"
 ok "kotlinc (BasePreferenceFragment, Hbm)"
 
-echo "=== 10. remote scripts and kernel ==="
+echo "=== 10. signing keygen ==="
+KEYDIR=$(mktemp -d)
+KEY_SUBJECT="/C=US/ST=California/L=Los Angeles/O=AxionOS/OU=AxionOS/CN=AxionOS"
+openssl genrsa 2048 > "$KEYDIR/releasekey.pem" 2>/dev/null || fail "openssl genrsa failed"
+openssl req -new -x509 -sha256 -batch -key "$KEYDIR/releasekey.pem" \
+    -out "$KEYDIR/releasekey.x509.pem" -days 10000 -subj "$KEY_SUBJECT" || fail "openssl req failed"
+openssl pkcs8 -in "$KEYDIR/releasekey.pem" -topk8 -outform DER \
+    -out "$KEYDIR/releasekey.pk8" -nocrypt || fail "openssl pkcs8 failed"
+[ -s "$KEYDIR/releasekey.pk8" ] && [ -s "$KEYDIR/releasekey.x509.pem" ] || fail "keygen produced empty files"
+rm -rf "$KEYDIR"
+ok "openssl keygen"
+
+echo "=== 11. remote scripts and kernel ==="
 for f in run.sh sync.sh build.sh local_manifest.xml patch_envsetup.py; do
     curl -fsSL "https://raw.githubusercontent.com/decrypt64bit/device_realme_RMX1971/axion-16/ci/$f" -o "/tmp/$f" \
         || fail "cannot fetch $f from the device fork"

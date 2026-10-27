@@ -20,6 +20,16 @@ set +u
 source build/envsetup.sh
 set -u
 
+echo "=== PRE-BUILD CHECKS ==="
+for p in build/make/envsetup.sh device/realme/RMX1971/lineage_RMX1971.mk \
+         vendor/realme/RMX1971/RMX1971-vendor.mk \
+         kernel/realme/sdm710/arch/arm64/configs/sdm670-perf_defconfig; do
+    [ -e "$p" ] || { echo "ERROR: missing $p"; exit 1; }
+done
+[ -d prebuilts/clang/host/linux-x86 ] || echo "WARN: prebuilts/clang/host/linux-x86 missing"
+echo "TARGET_PRODUCT=$(get_build_var TARGET_PRODUCT) TARGET_BUILD_VARIANT=$(get_build_var TARGET_BUILD_VARIANT)"
+df -h . | tail -1
+
 echo "=== KEYS ==="
 command -v openssl && openssl version || true
 KEY_SUBJECT="/C=US/ST=California/L=Los Angeles/O=AxionOS/OU=AxionOS/CN=AxionOS"
@@ -54,13 +64,20 @@ EOF
 else
     echo "signing keys already present"
 fi
+PK8_COUNT=$(ls "$ANDROID_KEY_PATH"/*.pk8 2>/dev/null | wc -l)
+PEM_COUNT=$(ls "$ANDROID_KEY_PATH"/*.x509.pem 2>/dev/null | wc -l)
+echo "keys: pk8=$PK8_COUNT pem=$PEM_COUNT"
+if [ "$PK8_COUNT" -ne 10 ] || [ "$PEM_COUNT" -ne 10 ] || [ ! -s "$ANDROID_KEY_PATH/releasekey.pk8" ] || [ ! -f "$ANDROID_KEY_PATH/keys.mk" ]; then
+    echo "ERROR: signing key set incomplete"
+    exit 1
+fi
 
 echo "=== LUNCH ==="
 axion RMX1971 userdebug va
 
 echo "=== SETTINGS PRECHECK ==="
 set +u
-m Settings
+m Settings || { echo "SETTINGS PRECHECK FAILED"; exit 1; }
 set -u
 echo "=== SETTINGS PRECHECK OK ==="
 
