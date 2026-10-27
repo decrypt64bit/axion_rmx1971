@@ -110,6 +110,41 @@ print('all string refs in %d xml files resolve (app + res-product + SettingsLib)
 PY
 ok "string resources"
 
+python3 - "$SETTINGS" <<'PY'
+import os, sys, xml.etree.ElementTree as ET
+root = sys.argv[1]
+default_dirs = [
+    os.path.join(root, 'res', 'values'),
+    os.path.join(root, 'res-product', 'values'),
+]
+counts = {}
+for d in default_dirs:
+    if not os.path.isdir(d):
+        continue
+    for fn in os.listdir(d):
+        if not fn.endswith('.xml'):
+            continue
+        try:
+            tree = ET.parse(os.path.join(d, fn))
+        except ET.ParseError:
+            continue
+        for el in tree.getroot().iter():
+            name = el.get('name')
+            if name:
+                counts[name] = counts.get(name, 0) + 1
+ax = os.path.join(root, 'res', 'values', 'ax_strings.xml')
+if os.path.isfile(ax):
+    dups = []
+    for el in ET.parse(ax).getroot().iter():
+        name = el.get('name')
+        if name and counts.get(name, 0) > 1:
+            dups.append(name)
+    if dups:
+        sys.exit('duplicate default resources: %s' % dups)
+print('no duplicate default resources from ax_strings.xml')
+PY
+ok "duplicate resources"
+
 echo "=== 5. device configuration ==="
 grep -q "persist.sys.hbmservice_file=/sys/kernel/oppo_display/hbm" "$DEV/device.mk" || fail "HBM node property missing"
 grep -q "TARGET_SHIPS_AXION_KERNEL_MODULES := false" "$DEV/BoardConfig.mk" || fail "kernel modules flag missing"
