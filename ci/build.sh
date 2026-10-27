@@ -27,6 +27,8 @@ for p in build/make/envsetup.sh device/realme/RMX1971/lineage_RMX1971.mk \
     [ -e "$p" ] || { echo "ERROR: missing $p"; exit 1; }
 done
 [ -d prebuilts/clang/host/linux-x86 ] || echo "WARN: prebuilts/clang/host/linux-x86 missing"
+[ -d prebuilts/clang/host/linux-x86/clang-proton ] || echo "WARN: clang-proton missing at the BoardConfig kernel compiler path"
+ls -d prebuilts/clang/host/linux-x86/clang-* 2>/dev/null | head -5 || true
 echo "TARGET_PRODUCT=$(get_build_var TARGET_PRODUCT) TARGET_BUILD_VARIANT=$(get_build_var TARGET_BUILD_VARIANT)"
 df -h . | tail -1
 
