@@ -58,13 +58,15 @@ ls -la .repo/local_manifests || true
 curl -fsSL "$BASE/local_manifest.xml" -o .repo/local_manifests/rmx1971.xml
 cat .repo/local_manifests/rmx1971.xml
 
-if [ -f /opt/crave/resync.sh ]; then
-    echo "=== CRAVE RESYNC SCRIPT (head) ==="
-    head -40 /opt/crave/resync.sh || true
-fi
-
 echo "=== REPO SYNC ==="
-repo sync -c -j8 --force-sync --no-clone-bundle --no-tags
+if [ -x /opt/crave/resync.sh ]; then
+    # Crave's wrapper updates the repo tool, clears .repo locks, prunes stale
+    # projects, force-removes dirty ones and retries by deleting failing repos.
+    /opt/crave/resync.sh
+else
+    repo sync -c -j"$(nproc)" --force-sync --no-clone-bundle --no-tags \
+        --prune --optimized-fetch --force-remove-dirty
+fi
 
 echo "=== PATCH ENVSETUP ==="
 python3 device/realme/RMX1971/ci/patch_envsetup.py build/make/envsetup.sh
