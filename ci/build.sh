@@ -21,8 +21,36 @@ source build/envsetup.sh
 set -u
 
 echo "=== KEYS ==="
+command -v openssl && openssl version || true
+KEY_SUBJECT="/C=US/ST=California/L=Los Angeles/O=AxionOS/OU=AxionOS/CN=AxionOS"
 if [ ! -f "$ANDROID_KEY_PATH/releasekey.pk8" ]; then
-    gk -s
+    # Axion's gk uses development/tools/make_key, whose named-pipe setup needs
+    # mknod, which is not permitted in the Crave container. Generate the same
+    # key set directly with openssl instead.
+    for key in nfc bluetooth media networkstack platform releasekey sdk_sandbox shared testkey verifiedboot; do
+        openssl genrsa 2048 > "$ANDROID_KEY_PATH/$key.pem" 2>/dev/null \
+            && openssl req -new -x509 -sha256 -batch -key "$ANDROID_KEY_PATH/$key.pem" \
+                 -out "$ANDROID_KEY_PATH/$key.x509.pem" -days 10000 -subj "$KEY_SUBJECT" \
+            && openssl pkcs8 -in "$ANDROID_KEY_PATH/$key.pem" -topk8 -outform DER \
+                 -out "$ANDROID_KEY_PATH/$key.pk8" -nocrypt \
+            || { echo "ERROR: failed to generate $key"; exit 1; }
+        rm -f "$ANDROID_KEY_PATH/$key.pem"
+    done
+    cat > "$ANDROID_KEY_PATH/keys.mk" <<EOF
+PRODUCT_DEFAULT_DEV_CERTIFICATE := vendor/lineage-priv/keys/releasekey
+PRODUCT_MAINLINE_SEPOLICY_DEV_CERTIFICATES := \$(dir \$(PRODUCT_DEFAULT_DEV_CERTIFICATE))
+PRODUCT_MAINLINE_BLUETOOTH_SEPOLICY_DEV_CERTIFICATES := \$(dir \$(PRODUCT_DEFAULT_DEV_CERTIFICATE))
+EOF
+    cat > "$ANDROID_KEY_PATH/BUILD.bazel" <<'EOF'
+filegroup(
+    name = "android_certificate_directory",
+    srcs = glob([
+        "*.pk8",
+        "*.pem",
+    ]),
+    visibility = ["//visibility:public"],
+)
+EOF
 else
     echo "signing keys already present"
 fi
