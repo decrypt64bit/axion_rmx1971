@@ -46,7 +46,7 @@ fi
 git lfs version 2>/dev/null || true
 
 echo "=== REPO VERSION ==="
-repo --version 2>&1 | head -3
+repo --version 2>&1 | head -3 || true
 
 echo "=== REPO INIT ==="
 repo init -u https://github.com/AxionAOSP/android.git -b lineage-23.2 $LFS_FLAG --depth=1 --no-repo-verify --no-clone-bundle
