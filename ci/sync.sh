@@ -58,6 +58,13 @@ ls -la .repo/local_manifests || true
 curl -fsSL "$BASE/local_manifest.xml" -o .repo/local_manifests/rmx1971.xml
 cat .repo/local_manifests/rmx1971.xml
 
+# Keep the proton-clang symlink from making the AOSP clang project "dirty",
+# otherwise resync --force-remove-dirty would delete the whole project.
+if [ -d prebuilts/clang/host/linux-x86/.git ]; then
+    grep -qx "clang-proton/" prebuilts/clang/host/linux-x86/.git/info/exclude 2>/dev/null \
+        || echo "clang-proton/" >> prebuilts/clang/host/linux-x86/.git/info/exclude
+fi
+
 echo "=== REPO SYNC ==="
 if [ -x /opt/crave/resync.sh ]; then
     # Crave's wrapper updates the repo tool, clears .repo locks, prunes stale
@@ -67,6 +74,28 @@ else
     repo sync -c -j"$(nproc)" --force-sync --no-clone-bundle --no-tags \
         --prune --optimized-fetch --force-remove-dirty
 fi
+
+echo "=== PROTON CLANG ==="
+PROTON_STORE=prebuilts/clang-proton
+PROTON_LINK=prebuilts/clang/host/linux-x86/clang-proton
+if [ ! -x "$PROTON_STORE/bin/clang" ]; then
+    rm -rf "$PROTON_STORE"
+    for i in 1 2 3; do
+        git clone --depth=1 --branch 20210522 \
+            https://github.com/kdrag0n/proton-clang.git "$PROTON_STORE" && break
+        echo "proton-clang clone failed ($i/3)"
+        rm -rf "$PROTON_STORE"
+        sleep 15
+    done
+fi
+[ -x "$PROTON_STORE/bin/clang" ] || { echo "ERROR: proton-clang clone failed"; exit 1; }
+mkdir -p prebuilts/clang/host/linux-x86
+rm -rf "$PROTON_LINK"
+ln -s ../../../clang-proton "$PROTON_LINK"
+grep -qx "clang-proton/" prebuilts/clang/host/linux-x86/.git/info/exclude 2>/dev/null \
+    || echo "clang-proton/" >> prebuilts/clang/host/linux-x86/.git/info/exclude
+[ -x "$PROTON_LINK/bin/clang" ] || { echo "ERROR: clang-proton link is broken"; exit 1; }
+echo "proton-clang ready: $("$PROTON_LINK/bin/clang" --version | head -1)"
 
 echo "=== PATCH ENVSETUP ==="
 python3 device/realme/RMX1971/ci/patch_envsetup.py build/make/envsetup.sh
