@@ -29,7 +29,6 @@ done
 [ -d prebuilts/clang/host/linux-x86 ] || echo "WARN: prebuilts/clang/host/linux-x86 missing"
 [ -d prebuilts/clang/host/linux-x86/clang-proton ] || echo "WARN: clang-proton missing at the BoardConfig kernel compiler path"
 ls -d prebuilts/clang/host/linux-x86/clang-* 2>/dev/null | head -5 || true
-echo "TARGET_PRODUCT=$(get_build_var TARGET_PRODUCT) TARGET_BUILD_VARIANT=$(get_build_var TARGET_BUILD_VARIANT)"
 df -h . | tail -1
 
 echo "=== KEYS ==="
@@ -75,7 +74,10 @@ if [ "$PK8_COUNT" -ne 10 ] || [ "$PEM_COUNT" -ne 10 ] || [ ! -s "$ANDROID_KEY_PA
 fi
 
 echo "=== LUNCH ==="
+set +u
 axion RMX1971 userdebug va
+echo "TARGET_PRODUCT=$(get_build_var TARGET_PRODUCT) TARGET_BUILD_VARIANT=$(get_build_var TARGET_BUILD_VARIANT)"
+set -u
 
 echo "=== SETTINGS PRECHECK ==="
 set +u
