@@ -75,6 +75,20 @@ else
         --prune --optimized-fetch --force-remove-dirty
 fi
 
+echo "=== WORKSPACE CLEANUP ==="
+# A reused workspace can still carry configs from its previous project. They are
+# inherited with inherit-product-if-exists and can inject duplicate packages.
+if [ -e vendor/extra ] && ! repo list 2>/dev/null | cut -f1 | grep -qx "vendor/extra"; then
+    mv vendor/extra "vendor/extra.leftover.$(date -u +%Y%m%d%H%M%S)"
+    echo "moved stray vendor/extra aside"
+fi
+for p in device/realme/RMX1971 vendor/realme/RMX1971 packages/apps/Settings \
+         frameworks/base packages/apps/FaceUnlock; do
+    if [ -d "$p/.git" ]; then
+        git -C "$p" clean -fdx >/dev/null 2>&1 || true
+    fi
+done
+
 echo "=== PROTON CLANG ==="
 PROTON_STORE=prebuilts/clang-proton
 PROTON_LINK=prebuilts/clang/host/linux-x86/clang-proton
