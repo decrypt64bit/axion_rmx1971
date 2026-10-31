@@ -11,6 +11,9 @@ echo "CPUS=$(nproc) MEM_GB=$(free -g | awk '/^Mem:/{print $2}')"
 export LC_ALL=C
 export TZ=UTC
 
+echo "=== CLEAN OUT ==="
+rm -rf out
+
 echo "=== ENVSETUP ==="
 # Axion's envsetup runs setup_keys() at source time; on a clean tree that calls
 # gk -s before lunch, and gk has no default for ANDROID_KEY_PATH. Provide it.
@@ -77,11 +80,20 @@ echo "=== LUNCH ==="
 set +u
 axion RMX1971 userdebug va
 echo "TARGET_PRODUCT=$(get_build_var TARGET_PRODUCT) TARGET_BUILD_VARIANT=$(get_build_var TARGET_BUILD_VARIANT)"
+echo "SENSORS_PKGS: $(get_build_var PRODUCT_PACKAGES | tr ' ' '\n' | grep -i 'sensors@2.0-service' | tr '\n' ' ')"
 set -u
 
 echo "=== SETTINGS PRECHECK ==="
 set +u
-m Settings || { echo "SETTINGS PRECHECK FAILED"; exit 1; }
+m Settings || {
+    echo "SETTINGS PRECHECK FAILED"
+    INST=out/soong/installs-lineage_RMX1971.mk
+    if [ -f "$INST" ]; then
+        echo "=== SENSORS INSTALL RULES ==="
+        grep -n -B4 -A1 "sensors@2.0-service.multihal" "$INST" | head -120
+    fi
+    exit 1
+}
 set -u
 echo "=== SETTINGS PRECHECK OK ==="
 
