@@ -92,6 +92,11 @@ m Settings || {
         echo "=== SENSORS INSTALL RULES ==="
         grep -n -B4 -A1 "sensors@2.0-service.multihal" "$INST" | head -120
     fi
+    NINJA=out/soong/build.lineage_RMX1971.incremental.ninja
+    if [ -f "$NINJA" ]; then
+        echo "=== NINJA SENSORS RULES ==="
+        grep -n "sensors@2.0-service.multihal" "$NINJA" | head -30
+    fi
     exit 1
 }
 set -u

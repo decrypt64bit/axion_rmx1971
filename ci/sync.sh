@@ -89,6 +89,16 @@ for p in device/realme/RMX1971 vendor/realme/RMX1971 packages/apps/Settings \
     fi
 done
 
+echo "=== SENSORS MODULE SCAN ==="
+for d in device hardware vendor packages frameworks; do
+    [ -d "$d" ] || continue
+    grep -rln 'android.hardware.sensors@2.0-service.multihal' --include=Android.bp --include='*.mk' "$d" 2>/dev/null | head -10 || true
+done
+if [ -d hardware/interfaces/sensors/2.0/multihal ]; then
+    mv hardware/interfaces/sensors/2.0/multihal hardware/interfaces/sensors/2.0/multihal.disabled
+    echo "disabled AOSP generic sensors multihal module"
+fi
+
 echo "=== PROTON CLANG ==="
 PROTON_STORE=prebuilts/clang-proton
 PROTON_LINK=prebuilts/clang/host/linux-x86/clang-proton
