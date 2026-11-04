@@ -86,16 +86,17 @@ set -u
 echo "=== SETTINGS PRECHECK ==="
 set +u
 m Settings || {
+    set +o pipefail
     echo "SETTINGS PRECHECK FAILED"
     INST=out/soong/installs-lineage_RMX1971.mk
     if [ -f "$INST" ]; then
         echo "=== SENSORS INSTALL RULES ==="
-        grep -n -B4 -A1 "sensors@2.0-service.multihal" "$INST" | head -120
+        grep -n -B4 -A1 "sensors@2.0-service.multihal" "$INST" | head -120 || true
     fi
     NINJA=out/soong/build.lineage_RMX1971.incremental.ninja
     if [ -f "$NINJA" ]; then
         echo "=== NINJA SENSORS RULES ==="
-        grep -n "sensors@2.0-service.multihal" "$NINJA" | head -30
+        grep -n -A6 "symbols/vendor/bin/hw/android.hardware.sensors@2.0-service.multihal" "$NINJA" | head -60 || true
     fi
     exit 1
 }

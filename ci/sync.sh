@@ -94,10 +94,12 @@ for d in device hardware vendor packages frameworks; do
     [ -d "$d" ] || continue
     grep -rln 'android.hardware.sensors@2.0-service.multihal' --include=Android.bp --include='*.mk' "$d" 2>/dev/null | head -10 || true
 done
-if [ -d hardware/interfaces/sensors/2.0/multihal ]; then
-    mv hardware/interfaces/sensors/2.0/multihal hardware/interfaces/sensors/2.0/multihal.disabled
-    echo "disabled AOSP generic sensors multihal module"
-fi
+for d in hardware/interfaces/sensors/2.0/multihal hardware/interfaces/sensors/2.0/multihal.disabled; do
+    if [ -d "$d" ]; then
+        mv "$d" "/tmp/crave-$(basename "$d").$(date -u +%s)"
+        echo "disabled AOSP generic sensors multihal module ($d)"
+    fi
+done
 
 echo "=== PROTON CLANG ==="
 PROTON_STORE=prebuilts/clang-proton
