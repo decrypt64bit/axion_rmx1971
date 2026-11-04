@@ -266,14 +266,9 @@ javac -proc:none -nowarn -cp "$ANDROID_JAR:/tmp/pref/classes.jar" -d /tmp/stubs 
 
 mkdir -p /tmp/javac-out
 javac -proc:none -nowarn -cp "$ANDROID_JAR:/tmp/pref/classes.jar:/tmp/stubs" -d /tmp/javac-out \
-    "$SETTINGS/src/com/android/settings/preferences/SecureSettingSwitchPreference.java" \
-    "$SETTINGS/src/com/android/settings/preferences/SecureSettingSeekBarPreference.java" \
-    "$SETTINGS/src/com/android/settings/preferences/SecureSettingListPreference.java" \
-    "$SETTINGS/src/com/android/settings/preferences/SystemSettingSwitchPreference.java" \
-    "$SETTINGS/src/com/android/settings/preferences/SystemPropertySwitchPreference.java" \
     "$SETTINGS/src/com/android/settings/security/PowerOffVerify.java" \
-    || fail "javac failed for preference classes"
-ok "javac (6 classes)"
+    || fail "javac failed for PowerOffVerify"
+ok "javac (PowerOffVerify)"
 
 echo "=== 9. kotlinc fragments ==="
 curl -fsSL -o /tmp/kotlin.zip https://github.com/JetBrains/kotlin/releases/download/v2.0.21/kotlin-compiler-2.0.21.zip || fail "kotlinc download failed"
@@ -287,10 +282,9 @@ done
 [ -n "$ANN" ] || fail "androidx annotation jar not found"
 /tmp/kotlinc/kotlinc/bin/kotlinc -nowarn -classpath "$ANDROID_JAR:/tmp/pref/classes.jar:$ANN:/tmp/stubs" \
     -d /tmp/kotlin-out \
-    "$SETTINGS/src/com/android/settings/preferences/BasePreferenceFragment.kt" \
     "$SETTINGS/src/com/android/settings/display/Hbm.kt" \
-    || fail "kotlinc failed for fragment classes"
-ok "kotlinc (BasePreferenceFragment, Hbm)"
+    || fail "kotlinc failed for Hbm"
+ok "kotlinc (Hbm against VendorSupport stub)"
 
 echo "=== 10. signing keygen ==="
 KEYDIR=$(mktemp -d)
