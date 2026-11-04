@@ -146,13 +146,13 @@ ls -l kernel/realme/sdm710/arch/arm64/configs/sdm670-perf_defconfig
 ls -l vendor/realme/RMX1971/RMX1971-vendor.mk
 
 echo "=== FORK CHECKS ==="
-test -f packages/apps/Settings/src/com/android/settings/preferences/BasePreferenceFragment.kt
-test -f packages/apps/Settings/src/com/android/settings/preferences/SecureSettingSeekBarPreference.java
+test -f packages/apps/VendorSupport/src/com/android/settings/preferences/BasePreferenceFragment.kt
+test -f packages/apps/VendorSupport/src/com/android/settings/preferences/SecureSettingListPreference.java
 test -f packages/apps/Settings/src/com/android/settings/security/PowerOffVerify.java
 test -f packages/apps/Settings/res/xml/hbm_settings.xml
 grep -q "auto_hbm_lux_on" packages/apps/Settings/res/xml/hbm_settings.xml
 git -C packages/apps/Settings log --oneline -1
-git -C packages/apps/Settings log --oneline -1 | grep -q "Restore missing Axion preferences"
+git -C packages/apps/Settings log --oneline -10 | grep -q "Restore missing Axion preferences"
 
 test -f frameworks/base/services/core/java/com/android/server/display/brightness/HbmService.java
 grep -q "MSG_SETTINGS_CHANGED, key" frameworks/base/services/core/java/com/android/server/display/brightness/HbmService.java

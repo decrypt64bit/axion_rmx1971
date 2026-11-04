@@ -54,6 +54,7 @@ jobs:
             device/realme/RMX1971 \
             packages/apps/Settings \
             packages/apps/FaceUnlock \
+            packages/apps/VendorSupport \
             frameworks/base \
             vendor/realme/RMX1971 \
             system/sepolicy \

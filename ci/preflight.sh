@@ -51,7 +51,7 @@ test -d "$SETTINGS/.git" || fail "Settings not synced"
 test -d "$FB/.git" || fail "frameworks/base not synced"
 test -d "$FACE/.git" || fail "FaceUnlock not synced"
 
-git -C "$SETTINGS" log --oneline -1 | grep -q "Restore missing Axion preferences" \
+git -C "$SETTINGS" log --oneline -10 | grep -q "Restore missing Axion preferences" \
     || fail "Settings fork does not carry the restore commit"
 git -C "$FB" log --oneline -1 | grep -q "pass the changed setting key" \
     || fail "frameworks/base fork does not carry the HBM key fix"
@@ -60,8 +60,8 @@ git -C "$FACE" log --oneline -3 | grep -q "replace analyzer frame pixels" \
 ok "fork commits"
 
 echo "=== 4. Settings files and resources ==="
-test -f "$SETTINGS/src/com/android/settings/preferences/BasePreferenceFragment.kt" || fail "BasePreferenceFragment.kt missing"
-test -f "$SETTINGS/src/com/android/settings/preferences/SecureSettingSeekBarPreference.java" || fail "SecureSettingSeekBarPreference.java missing"
+test -f "$WS/packages/apps/VendorSupport/src/com/android/settings/preferences/BasePreferenceFragment.kt" || fail "VendorSupport BasePreferenceFragment.kt missing"
+test -f "$WS/packages/apps/VendorSupport/src/com/android/settings/preferences/SecureSettingListPreference.java" || fail "VendorSupport SecureSettingListPreference.java missing"
 test -f "$SETTINGS/src/com/android/settings/security/PowerOffVerify.java" || fail "PowerOffVerify.java missing"
 test -f "$SETTINGS/res/xml/hbm_settings.xml" || fail "hbm_settings.xml missing"
 grep -q "auto_hbm_lux_on" "$SETTINGS/res/xml/hbm_settings.xml" || fail "hbm_settings.xml lost the lux preference"
@@ -209,7 +209,7 @@ rm -rf /tmp/pref && mkdir -p /tmp/pref && unzip -q /tmp/pref.aar classes.jar -d 
 # framework.jar. Stub only what our files touch so javac still checks them.
 STUBS=/tmp/stubs-src
 rm -rf "$STUBS" /tmp/stubs && mkdir -p "$STUBS/android/os" "$STUBS/android/app/settings" \
-    "$STUBS/com/android/settings" "$STUBS/androidx/fragment/app"
+    "$STUBS/com/android/settings" "$STUBS/com/android/settings/preferences" "$STUBS/androidx/fragment/app"
 cat > "$STUBS/android/os/SystemProperties.java" <<'JAVA'
 package android.os;
 public class SystemProperties {
@@ -251,6 +251,12 @@ public class SettingsPreferenceFragment {
     public PreferenceManager getPreferenceManager() { return null; }
     public void setPreferenceScreen(PreferenceScreen screen) { }
     public int getMetricsCategory() { return 0; }
+}
+JAVA
+cat > "$STUBS/com/android/settings/preferences/BasePreferenceFragment.java" <<'JAVA'
+package com.android.settings.preferences;
+public class BasePreferenceFragment {
+    public BasePreferenceFragment(int xmlRes) { }
 }
 JAVA
 cat > "$STUBS/androidx/fragment/app/Fragment.java" <<'JAVA'
