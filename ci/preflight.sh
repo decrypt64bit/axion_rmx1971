@@ -280,6 +280,13 @@ for u in \
     if curl -fsSL "$u" -o /tmp/annotation.jar; then ANN=/tmp/annotation.jar; break; fi
 done
 [ -n "$ANN" ] || fail "androidx annotation jar not found"
+# Kotlin 2.0.x cannot parse JDK 25 (runner default); use a JDK 17 if present.
+for d in /usr/lib/jvm/*; do
+    [ -x "$d/bin/java" ] || continue
+    if "$d/bin/java" -version 2>&1 | grep -q 'version "17'; then
+        export JAVA_HOME="$d"; export PATH="$d/bin:$PATH"; break
+    fi
+done
 /tmp/kotlinc/kotlinc/bin/kotlinc -nowarn -classpath "$ANDROID_JAR:/tmp/pref/classes.jar:$ANN:/tmp/stubs" \
     -d /tmp/kotlin-out \
     "$SETTINGS/src/com/android/settings/display/Hbm.kt" \
