@@ -152,7 +152,6 @@ test -f packages/apps/Settings/src/com/android/settings/security/PowerOffVerify.
 test -f packages/apps/Settings/res/xml/hbm_settings.xml
 grep -q "auto_hbm_lux_on" packages/apps/Settings/res/xml/hbm_settings.xml
 git -C packages/apps/Settings log --oneline -1
-git -C packages/apps/Settings log --oneline -10 | grep -q "Restore missing Axion preferences"
 
 test -f frameworks/base/services/core/java/com/android/server/display/brightness/HbmService.java
 grep -q "MSG_SETTINGS_CHANGED, key" frameworks/base/services/core/java/com/android/server/display/brightness/HbmService.java

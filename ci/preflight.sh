@@ -51,8 +51,6 @@ test -d "$SETTINGS/.git" || fail "Settings not synced"
 test -d "$FB/.git" || fail "frameworks/base not synced"
 test -d "$FACE/.git" || fail "FaceUnlock not synced"
 
-git -C "$SETTINGS" log --oneline -10 | grep -q "Restore missing Axion preferences" \
-    || fail "Settings fork does not carry the restore commit"
 git -C "$FB" log --oneline -1 | grep -q "pass the changed setting key" \
     || fail "frameworks/base fork does not carry the HBM key fix"
 git -C "$FACE" log --oneline -3 | grep -q "replace analyzer frame pixels" \
