@@ -168,4 +168,7 @@ grep -q "sysfs_oppo_display:file" device/realme/RMX1971/sepolicy/vendor/system_s
 grep -q "hal_health_default sysfs_battery_supply:file" device/realme/RMX1971/sepolicy/vendor/hal_health_default.te
 grep -q "ax_kernel_manager.xml:\$(TARGET_COPY_OUT_SYSTEM_EXT)" device/realme/RMX1971/device.mk
 
+echo "=== DUPLICATE CLASS CHECK ==="
+python3 device/realme/RMX1971/ci/check_duplicate_classes.py .
+
 echo "=== AXION SYNC READY $(date -u) ==="

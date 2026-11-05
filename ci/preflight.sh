@@ -68,6 +68,10 @@ grep -q "class Hbm : BasePreferenceFragment(R.xml.hbm_settings)" "$SETTINGS/src/
 test -f "$SETTINGS/src/com/android/settings/applications/appinfo/AppsLocalePreferenceController.java" || fail "AppsLocalePreferenceController missing"
 ok "Settings files"
 
+echo "=== duplicate class scan ==="
+python3 "$META/ci/check_duplicate_classes.py" "$WS" || fail "duplicate classes in Settings compile set"
+ok "duplicate classes"
+
 python3 - "$SETTINGS" "$FB" <<'PY'
 import os, re, sys, pathlib, xml.etree.ElementTree as ET
 settings = pathlib.Path(sys.argv[1])
