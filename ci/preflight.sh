@@ -60,7 +60,7 @@ ok "fork commits"
 echo "=== 4. Settings files and resources ==="
 test -f "$WS/packages/apps/VendorSupport/src/com/android/settings/preferences/BasePreferenceFragment.kt" || fail "VendorSupport BasePreferenceFragment.kt missing"
 test -f "$WS/packages/apps/VendorSupport/src/com/android/settings/preferences/SecureSettingListPreference.java" || fail "VendorSupport SecureSettingListPreference.java missing"
-test -f "$SETTINGS/src/com/android/settings/security/PowerOffVerify.java" || fail "PowerOffVerify.java missing"
+test -f "$WS/packages/apps/Personalizations/src/com/android/settings/security/PowerOffVerify.kt" || fail "Personalizations PowerOffVerify.kt missing"
 test -f "$SETTINGS/res/xml/hbm_settings.xml" || fail "hbm_settings.xml missing"
 grep -q "auto_hbm_lux_on" "$SETTINGS/res/xml/hbm_settings.xml" || fail "hbm_settings.xml lost the lux preference"
 grep -q "HbmSettingsPreferenceController" "$SETTINGS/res/xml/display_settings.xml" || fail "HBM entry not in display settings"
@@ -264,11 +264,7 @@ JAVA
 javac -proc:none -nowarn -cp "$ANDROID_JAR:/tmp/pref/classes.jar" -d /tmp/stubs \
     $(find "$STUBS" -name '*.java') || fail "stub compilation failed"
 
-mkdir -p /tmp/javac-out
-javac -proc:none -nowarn -cp "$ANDROID_JAR:/tmp/pref/classes.jar:/tmp/stubs" -d /tmp/javac-out \
-    "$SETTINGS/src/com/android/settings/security/PowerOffVerify.java" \
-    || fail "javac failed for PowerOffVerify"
-ok "javac (PowerOffVerify)"
+ok "stubs"
 
 echo "=== 9. kotlinc fragments ==="
 curl -fsSL -o /tmp/kotlin.zip https://github.com/JetBrains/kotlin/releases/download/v2.0.21/kotlin-compiler-2.0.21.zip || fail "kotlinc download failed"

@@ -148,7 +148,7 @@ ls -l vendor/realme/RMX1971/RMX1971-vendor.mk
 echo "=== FORK CHECKS ==="
 test -f packages/apps/VendorSupport/src/com/android/settings/preferences/BasePreferenceFragment.kt
 test -f packages/apps/VendorSupport/src/com/android/settings/preferences/SecureSettingListPreference.java
-test -f packages/apps/Settings/src/com/android/settings/security/PowerOffVerify.java
+test -f packages/apps/Personalizations/src/com/android/settings/security/PowerOffVerify.kt
 test -f packages/apps/Settings/res/xml/hbm_settings.xml
 grep -q "auto_hbm_lux_on" packages/apps/Settings/res/xml/hbm_settings.xml
 git -C packages/apps/Settings log --oneline -1
