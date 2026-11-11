@@ -42,6 +42,26 @@ curl -fsSL https://raw.githubusercontent.com/decrypt64bit/device_realme_RMX1971/
 
 That script runs `ci/sync.sh` (repo init against the Axion manifest, install the local manifest, sync, verify the forked commits and device configuration) and then `ci/build.sh` (lunch `lineage_RMX1971`, build Settings as a precheck, then `ax -br`).
 
+## Building on Modal (free compute)
+
+Crave's free tier ended on 2026-11-05. `modal_build.py` runs the same pipeline on
+Modal's Starter plan, which includes $30/month of free compute. The build runs in
+a remote 32-core / 64 GiB / 500 GiB container (up to 12 h); a full build costs
+roughly $8–12 of the free credit. Artifacts and the build log are saved to the
+Modal volume `axion-rmx1971-artifacts`; no GitHub token is sent to Modal.
+
+```bash
+pip install modal
+modal token new          # browser sign-in; create a Modal account first
+modal run modal_build.py
+modal volume ls axion-rmx1971-artifacts
+modal volume get axion-rmx1971-artifacts <filename> .
+```
+
+Confirm at signup that the Starter plan does not require a card. If it does, use
+Azure for Students (no-card $100 credit, student verification) or a community
+build instead.
+
 ## Verification
 
 A GitHub Actions preflight (`.github/workflows/preflight.yml`) runs before any long Crave build. It syncs the Axion manifest plus every forked project, applies the same fork and device checks as the Crave pipeline, compiles the touched XML resources with aapt2 and the new Settings classes with javac/kotlinc, then runs `lunch` and asserts that `AxionParts`, `AxThemePicker`, `AxThemeStore`, `EdgeLauncher` and `AxDiagnostics` are in `PRODUCT_PACKAGES` and that `device/axion/common` is in the Soong namespaces.
